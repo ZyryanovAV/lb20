@@ -1,51 +1,64 @@
-#!/usr/bin/env python3
-# -*- config: utf-8 -*-
-
-# в данной программе создается анимация круга, который движется от левой
-# границы холста до правой:
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from tkinter import *
-import time
-import random
+import math
 
-WIDTH = 1024
-HEIGHT = 720
+# Изучите приведенную программу и самостоятельно запрограммируйте постепенное
+# движение фигуры в ту точку холста, где пользователь кликает левой кнопкой мыши.
+# Координаты события хранятся в его атрибутах x и y ( event.x , event.y ).
 
-tk = Tk()
-cv = Canvas(tk, width=WIDTH, height=HEIGHT)
-tk.title('Tkinter ballz')
-cv.pack()
+class Main_prog:
+    def __init__(self, master, width=600, height=600):
+        self.vect_x = 1
+        self.vect_y = 1
+        self.path = 0
+        self.center_x = 0
+        self.center_y = 0
+        self.move_x = 0
+        self.move_y = 0
+        self.clck_x = 0
+        self.clck_y = 0
+        self.height = height
+        self.width = width
+        self.main_canv = Canvas(master, width=self.width, height=self.height, bg='black')
+        self.rad = 10
+        self.ball = self.main_canv.create_oval(self.width // 2 - self.rad + 100, self.height // 2 - self.rad + 100,
+                                                self.width // 2 + self.rad + 100, self.height // 2 + self.rad + 100,
+                                               fill='white')
+        self.line =self.main_canv.create_line(self.width // 2, self.height / 2 - 200,
+                                              self.width // 2, self.height / 2 + 200, fill='white')
+        self.main_canv.pack()
+        self.main_canv.bind('<Button-1>', self.clck_move)
+        root.after(10, self.move_ball)
 
-class Ball:
-    def __init__(self, size, color):
-        self.shape = cv.create_oval(10, 10, size, size, fill=color)
-        self.xspeed = random.randint(-6, 8)
-        if self.xspeed == 0:
-            self.xspeed = random.randint(-6, 8)
-        self.yspeed = random.randint(-6, 8)
-        if self.yspeed == 0:
-            self.yspeed = random.randint(-6, 8)
+    def clck_move(self, event):
+        self.ball_coords = self.main_canv.coords(self.ball)
+        self.center_x = (self.ball_coords[0] + self.ball_coords[2]) / 2
+        self.center_y = (self.ball_coords[1] + self.ball_coords[3]) / 2
+        self.clck_x = event.x
+        self.clck_y = event.y
 
-    def move(self):
-        cv.move(self.shape, self.xspeed, self.yspeed)
-        pos = cv.coords(self.shape)
-        if pos[3] >= HEIGHT or pos[1] <= 0:
-            self.yspeed = -self.yspeed
+        self.vect_x = self.clck_x - self.center_x
+        self.vect_y = self.clck_y - self.center_y
+        self.path = math.sqrt(self.vect_x ** 2 + self.vect_y ** 2)
 
-        if pos[2] >= WIDTH or pos[0] <= 0:
-            self.xspeed = -self.xspeed
+        self.move_x = self.vect_x / self.path
+        self.move_y = self.vect_y / self.path
 
-colors = ['red', 'gold', 'blue']
-balls = []
-for i in range(10):
-    balls.append(Ball(70, random.choice(colors)))
+    def move_ball(self):
+        self.main_canv.move(self.ball, self.move_x * 6, self.move_y * 6)
+        self.ball_coords = self.main_canv.coords(self.ball)
 
+        if self.ball_coords[0] < 0 or self.ball_coords[2] > self.width:
+            self.move_x = -self.move_x
+        if self.ball_coords[1] < 0 or self.ball_coords[3] > self.height:
+            self.move_y = -self.move_y
+        if self.ball_coords[0] < self.width // 2 and self.height / 2 + 200 > self.ball_coords[1] > self.height / 2 - 200 and self.ball_coords[2] > self.width // 2:
+                self.move_x = -self.move_x
 
+        root.after(10, self.move_ball)
 
-
-
-while True:
-    for ball in balls:
-        ball.move()
-    tk.update()
-    time.sleep(0.001)
+root = Tk()
+game = Main_prog(root)
+root.mainloop()
